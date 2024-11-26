@@ -1,25 +1,30 @@
 "use client";
 
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 
 const UploadedImages = () => {
   const [images, setImages] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(true);
 
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
         const response = await fetch("/api/fetchuploaded");
-        if (!response.ok) {
-          throw new Error("Failed to fetch images");
-        }
         const data = await response.json();
-        setImages(data);
-      } catch (err) {
-        console.error("Error fetching images:", err);
+
+
+        if (response.ok) {
+          setImages(data.images);
+        } else {
+          console.error("Error fetching images:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching images:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -28,67 +33,49 @@ const UploadedImages = () => {
   }, []);
 
 
-  const openPreview = (image) => {
-    setSelectedImage(image);
-  };
-
-
-  const closePreview = () => {
-    setSelectedImage(null);
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <p className="text-gray-600 text-xl">Loading images...</p>
+      </div>
+    );
+  }
 
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
+    <div className="flex flex-col items-center py-8 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Uploaded Images</h1>
+
+
       {images.length === 0 ? (
-        <p className="text-gray-500">No images uploaded yet.</p>
+        <p className="text-gray-600">No images uploaded yet.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-7xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
           {images.map((image) => (
             <div
               key={image._id}
-              className="relative overflow-hidden rounded-lg shadow-md bg-white group cursor-pointer"
-              onClick={() => openPreview(image)}
+              className="bg-white rounded-lg shadow-lg overflow-hidden"
             >
               <img
                 src={image.imageUrl}
                 alt="Uploaded"
-                className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-48 object-cover"
               />
-              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-80 transition-opacity duration-300">
-                <div className="p-4 text-white">
-                  <p className="text-sm">
-                    Uploaded on:{" "}
-                    {new Date(image.uploadedAt).toLocaleDateString()}
-                  </p>
-                </div>
+              <div className="p-4">
+                <p className="text-sm text-gray-600 truncate">
+                  {image.imageUrl}
+                </p>
+                <a
+                  href={image.imageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 text-sm font-semibold hover:underline"
+                >
+                  View Full Image
+                </a>
               </div>
             </div>
           ))}
-        </div>
-      )}
-      {selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative">
-            <button
-              className="absolute top-4 right-2 text-white text-3xl font-bold hover:text-red-500"
-              onClick={closePreview}
-            >
-              &times;
-            </button>
-            <img
-              src={selectedImage.imageUrl}
-              alt="Preview"
-              className="max-w-full max-h-screen object-contain"
-            />
-            <div className="text-center mt-4 text-white">
-              <p className="text-lg">
-                Uploaded on:{" "}
-                {new Date(selectedImage.uploadedAt).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
         </div>
       )}
     </div>
@@ -97,3 +84,5 @@ const UploadedImages = () => {
 
 
 export default UploadedImages;
+
+
