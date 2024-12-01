@@ -1,6 +1,8 @@
 import { connectMongoDB } from "@/lib/mongodb";
 import uploadedImage from "@/models/uploadedImage";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import db from "@/app/db";
+import { imageTable } from "@/app/db/schema";
 
 const R2_CLIENT = new S3Client({
   region: "auto",
@@ -47,7 +49,11 @@ export async function POST(req) {
 
     const fileUrl = `https://${BUCKET_NAME}.r2.cloudflarestorage.com/${fileName}`;
 
-    const newImage = await uploadedImage.create({ imageUrl: fileUrl });
+    // const newImage = await uploadedImage.create({ imageUrl: fileUrl });
+    const newImage = db
+      .insert(imageTable)
+      .values({ imageUrl: fileUrl })
+      .execute();
     console.log("Image saved to MongoDB:", newImage);
 
     return new Response(
