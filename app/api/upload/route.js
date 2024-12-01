@@ -15,15 +15,15 @@ const BUCKET_NAME = "clickit";
 
 export async function POST(req) {
   try {
-    
     await connectMongoDB();
     console.log("Connected to MongoDB");
 
-    
-    const { fileName, fileContent } = await req.json();
+    const formData = await req.formData();
+    const file = formData.get("file");
+    const fileName = file.name;
+    const fileContent = await file.arrayBuffer();
     console.log("File details received:", fileName);
 
-    
     if (!fileName || !fileContent) {
       return new Response(
         JSON.stringify({ error: "File name and content are required" }),
@@ -31,12 +31,10 @@ export async function POST(req) {
       );
     }
 
-    
-    const buffer = Buffer.from(fileContent, "base64");
+    const buffer = Buffer.from(fileContent);
     const fileExtension = fileName.split(".").pop().toLowerCase();
     const mimeType = `image/${fileExtension}`;
 
-    
     const uploadParams = {
       Bucket: BUCKET_NAME,
       Key: fileName,
@@ -47,14 +45,11 @@ export async function POST(req) {
     await R2_CLIENT.send(new PutObjectCommand(uploadParams));
     console.log("File uploaded to R2:", fileName);
 
-    
     const fileUrl = `https://${BUCKET_NAME}.r2.cloudflarestorage.com/${fileName}`;
 
-    
     const newImage = await uploadedImage.create({ imageUrl: fileUrl });
     console.log("Image saved to MongoDB:", newImage);
 
-    
     return new Response(
       JSON.stringify({
         message: "Image uploaded successfully",
