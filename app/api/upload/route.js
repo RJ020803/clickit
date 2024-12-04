@@ -1,6 +1,10 @@
 import { connectMongoDB } from "@/lib/mongodb";
 import uploadedImage from "@/models/uploadedImage";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import db from "@/app/db";
 import { imageTable } from "@/app/db/schema";
 
@@ -52,7 +56,7 @@ export async function POST(req) {
     // const newImage = await uploadedImage.create({ imageUrl: fileUrl });
     const newImage = db
       .insert(imageTable)
-      .values({ imageUrl: fileUrl })
+      .values({ image: fileName })
       .execute();
     console.log("Image saved to MongoDB:", newImage);
 
@@ -66,6 +70,38 @@ export async function POST(req) {
     );
   } catch (error) {
     console.error("Error in Upload API:", error);
+    return new Response(JSON.stringify({ error: "Server error" }), {
+      status: 500,
+    });
+  }
+}
+
+export async function GET(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const key = searchParams.get("key");
+
+    if (!key) {
+      return new Response(JSON.stringify({ error: "Key is required" }), {
+        status: 400,
+      });
+    }
+
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: key,
+    };
+
+    const data = await R2_CLIENT.send(new GetObjectCommand(params));
+    const fileContent = await new Response(data.Body).arrayBuffer();
+
+    return new Response(fileContent, {
+      headers: {
+        "Content-Type": data.ContentType,
+      },
+    });
+  } catch (error) {
+    console.error("Error in Download API:", error);
     return new Response(JSON.stringify({ error: "Server error" }), {
       status: 500,
     });

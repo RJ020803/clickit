@@ -1,5 +1,5 @@
 {
-  "id": "733c5861-6648-49a2-b305-820308e3246e",
+  "id": "65bab3cc-e84f-4463-85b6-56b416aa4360",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -8,8 +8,8 @@
       "name": "images",
       "schema": "",
       "columns": {
-        "image_url": {
-          "name": "image_url",
+        "image": {
+          "name": "image",
           "type": "text",
           "primaryKey": false,
           "notNull": false

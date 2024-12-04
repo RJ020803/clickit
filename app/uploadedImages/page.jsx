@@ -1,20 +1,16 @@
 "use client";
 
-
 import { useEffect, useState } from "react";
-
 
 const UploadedImages = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
-
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
         const response = await fetch("/api/fetchuploaded");
         const data = await response.json();
-
 
         if (response.ok) {
           setImages(data.images);
@@ -28,10 +24,8 @@ const UploadedImages = () => {
       }
     };
 
-
     fetchImages();
   }, []);
-
 
   if (loading) {
     return (
@@ -41,11 +35,9 @@ const UploadedImages = () => {
     );
   }
 
-
   return (
     <div className="flex flex-col items-center py-8 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Uploaded Images</h1>
-
 
       {images.length === 0 ? (
         <p className="text-gray-600">No images uploaded yet.</p>
@@ -57,16 +49,14 @@ const UploadedImages = () => {
               className="bg-white rounded-lg shadow-lg overflow-hidden"
             >
               <img
-                src={image.imageUrl}
+                src={"/api/upload?key=" + image.image}
                 alt="Uploaded"
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <p className="text-sm text-gray-600 truncate">
-                  {image.imageUrl}
-                </p>
+                <p className="text-sm text-gray-600 truncate">{image.image}</p>
                 <a
-                  href={image.imageUrl}
+                  href={"/api/upload?key=" + image.image}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 text-sm font-semibold hover:underline"
@@ -82,7 +72,4 @@ const UploadedImages = () => {
   );
 };
 
-
 export default UploadedImages;
-
-
